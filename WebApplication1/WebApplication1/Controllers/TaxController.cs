@@ -49,11 +49,17 @@ namespace TaxAPI.Controllers
                 return BadRequest("No tax data provided");
             }
 
-            var entity = RemapEntity(tax);
+            try
+            {
+                var entity = RemapEntity(tax);
+                await _repository.AddAsync(entity);
 
-            await _repository.AddAsync(entity);
-
-            return Ok(tax);
+                return Ok(tax);
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Invalid Request Body Model. Error: {e.Message}");
+            }
         }
 
         [HttpPost("find")]
