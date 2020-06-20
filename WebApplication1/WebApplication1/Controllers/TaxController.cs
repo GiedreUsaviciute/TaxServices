@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using TaxAPI.Data;
 using TaxAPI.Models;
 
@@ -59,6 +61,37 @@ namespace TaxAPI.Controllers
             catch (Exception e)
             {
                 return BadRequest($"Invalid Request Body Model. Error: {e.Message}");
+            }
+        }
+
+        //upload a json file and import data from it
+        [HttpPost("upload")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateFromUpload(FileData file)
+        {
+            if (file == null || file.Data == null)
+            {
+                return BadRequest("No file data provided");
+            }
+
+            try
+            {
+                var tasks = file.Data.ToList().Select(async item =>
+                {
+                    var entity = RemapEntity(item);
+                    await _repository.AddAsync(entity);
+                });
+              
+                var allTasks = Task.WhenAll(tasks);
+
+                await allTasks;
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Data import failed. Error: {e.Message}");
             }
         }
 
