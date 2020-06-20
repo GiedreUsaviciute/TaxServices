@@ -64,6 +64,31 @@ namespace TaxAPI.Controllers
             }
         }
 
+        //WIP: update - only for the correct data model
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Update([FromBody] MunicipalityTax tax)
+        {
+            if (tax == null)
+            {
+                return BadRequest("No tax data provided");
+            }
+
+            try
+            {
+                var updated = await _repository.UpdateAsync(tax);
+
+                if (updated) return Ok();
+
+                return BadRequest("Data update was unsuccessful");
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Invalid Request Body Model. Error: {e.Message}");
+            }
+        }
+
         //upload a json file and import data from it
         [HttpPost("upload")]
         [ProducesResponseType(StatusCodes.Status200OK)]
